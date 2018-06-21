@@ -711,13 +711,15 @@ i=1
 while true; do
 a=$(sed -n "$i"p $porta_var | awk '{print $1}')
 b=$(sed -n "$i"p $porta_var | awk '{print $2}')
+[[ "$a" != "" ]] && texto="${cor[2]} ° ${cor[3]} $a: \033[1;31m$b" || texto=""
 [[ "$a" = "" ]] && break
 i=$(($i+1))
 c=$(sed -n "$i"p $porta_var | awk '{print $1}')
 d=$(sed -n "$i"p $porta_var | awk '{print $2}')
+[[ "$c" != "" ]] && texto_="${cor[2]} ° ${cor[3]} $c: \033[1;31m$d" || texto_=""
 [[ "$a" = "" ]] && break
 i=$(($i+1))
-echo -e "${cor[2]} ° ${cor[3]} $a: \033[1;31m$b   ${cor[2]} ° ${cor[3]} $c: \033[1;31m$d"
+echo -e "$texto  $texto_"
 done
 rm $portas_var
 rm $porta_var
