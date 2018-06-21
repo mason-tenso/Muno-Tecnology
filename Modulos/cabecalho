@@ -139,8 +139,8 @@ unset fail2_ban && fail2_ban=$(dpkg -l | grep fail2ban | grep ii)
 [[ `grep -c "^#ADM" /etc/sysctl.conf` -eq 0 ]] && _tcpspeed="$_off" || _tcpspeed="$_on"
 [[ "$fail2_ban" = "" ]] && fail_b="$_off" || fail_b="$_on"
 [[ "$VERIFICAR" = "on" ]] && VERIFICAR_PID="$_on" || VERIFICAR_PID="$_off"
-[[ -e ./onlines ]] && __onlines="\033[1;31m$(cat ./onlines)" || __onlines="$_off"
-[[ -e ./vencidos ]] && __vencidos="\033[1;31m$(cat ./vencidos)" || __vencidos="$_off"
+[[ -e ./onlines ]] && __onlines="\033[1;31m$(cat ./onlines)" || __onlines="\033[1;31m0"
+[[ -e ./vencidos ]] && __vencidos="\033[1;31m$(cat ./vencidos)" || __vencidos="\033[1;31m0"
 [[ "$(ps x | grep "ultimatebot" | grep -v "grep")" != "" ]] && bot="$_on" || bot="$_off"
 [[ ! -e /etc/adm-lite/versao_script ]] && echo 1 > /etc/adm-lite/versao_script
 P_SERVER="80.211.59.63"
@@ -693,26 +693,48 @@ var_number="$1"
 fi
 }
 
-check_service () {
-[[ -e /etc/squid/squid.conf ]]  && _squid="\033[1;32mON" || _squid="\033[1;31mOFF"
-[[ -e /etc/squid3/squid.conf ]]  && _squid="\033[1;32mON" || _squid="\033[1;31mOFF"
-[[ -e /etc/default/dropbear ]] && _drop="\033[1;32mON" || _drop="\033[1;31mOFF"
-[[ -e /etc/openvpn/server.conf ]] && _open="\033[1;32mON" || _open="\033[1;31mOFF"
+ports_ () {
+portas_var="/tmp/portas"
+porta_var="/tmp/portas2"
+lsof -V -i tcp -P -n | grep -v "ESTABLISHED" |grep -v "COMMAND" | grep "LISTEN" > $portas_var
+while read port; do
+var1=$(echo $port | awk '{print $1}')
+var2=$(echo $port | awk '{print $9}' | awk -F ":" '{print $2}')
+ if [ ! -e "$porta_var" ]; then
+ echo -e "$var1 $var2" > $porta_var
+ fi
+ if [ "$(cat $porta_var | grep "$var1" | grep "$var2")" = "" ]; then
+ echo -e "$var1 $var2" >> $porta_var
+ fi
+done < $portas_var
+i=1
+while true; do
+a=$(sed -n "$i"p $porta_var | awk '{print $1}')
+b=$(sed -n "$i"p $porta_var | awk '{print $2}')
+[[ "$a" = "" ]] && break
+i=$(($i+1))
+c=$(sed -n "$i"p $porta_var | awk '{print $1}')
+d=$(sed -n "$i"p $porta_var | awk '{print $2}')
+[[ "$a" = "" ]] && break
+i=$(($i+1))
+echo -e "${cor[2]} ° ${cor[3]} $a: \033[1;31m$b   ${cor[2]} ° ${cor[3]} $c: \033[1;31m$d"
+done
+rm $portas_var
+rm $porta_var
 }
 
 [[ $v1 = $v2 ]] && vesaoSCT="\033[1;32m${txt[315]}" || vesaoSCT="\033[1;31m${txt[316]}"
 credit=$(cat ./menu_credito)
 __IP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
-check_service
-[[ -e /usr/bin/neofetch ]] && neofetch
 echo -e "${cor[1]} =================================== ${cor[0]}"
 echo -e "${cor[2]} ∆ ${cor[3]} $credit"
 echo -e "${cor[2]} √ ${cor[3]} ${txt[0]}"
 echo -e "${cor[1]} =================================== ${cor[0]}"
+[[ "$VERIFICAR" = "on" ]] && 
 echo -e "${cor[2]} ° ${cor[3]} ${txt[1]} $__onlines ${cor[2]}    ° ${cor[3]} ${txt[2]} $__vencidos"
 echo -e "${cor[2]} ° ${cor[3]} ${txt[3]} $_os"
 echo -e "${cor[2]} ° ${cor[3]} ${txt[331]} \033[1;31m$__IP"
-echo -e "${cor[2]} ° ${cor[3]} SQUID: \033[1;31m$_squid  ${cor[2]} ° ${cor[3]} DROPBEAR: \033[1;31m$_drop"
-echo -e "${cor[2]} ° ${cor[3]} OPENVPN: \033[1;31m$_open"
+echo -e "${cor[1]} =================================== ${cor[0]}"
+ports_
 echo -e "${cor[1]} =================================== ${cor[0]}"
 echo -e "${cor[2]} ${vesaoSCT} ${cor[0]}"
