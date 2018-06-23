@@ -701,6 +701,9 @@ case $xption in
  2)
    nano /etc/openvpn/client-common.txt
    return 0;;
+ *)
+	echo -e "${barra}"
+	return 0
  esac
  }
 [[ -e /etc/squid/squid.conf ]] && instala_ovpn && return 0
