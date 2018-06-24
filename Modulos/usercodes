@@ -143,8 +143,6 @@ read -p " ${txt[36]} " limit
 echo -e "${cor[1]} =================================== ${cor[0]}"
 meu_ip
 if [ "$OPENVPN" = "on" ]; then
-cd /etc/openvpn/easy-rsa/
-./easyrsa build-client-full $name nopass > /dev/null 2>&1
 open_1 $name $pass $daysrnf $limit s
 echo -e "${cor[5]} IP => ${cor[4]}$IP"
 echo -e "${cor[5]} ${txt[34]} ${cor[4]}$name"

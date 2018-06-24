@@ -470,23 +470,18 @@ read -p " [S/N]: " -e -i n sshsn
 return 0
 }
 
-
 #GERA NOVO CLIENTE
 newclient () {
-	# Generates the custom client.ovpn
-	cp /etc/openvpn/client-common.txt ~/$1.ovpn
-	echo "<ca>" >> ~/$1.ovpn
-	cat /etc/openvpn/easy-rsa/pki/ca.crt >> ~/$1.ovpn
-	echo "</ca>" >> ~/$1.ovpn
-	echo "<cert>" >> ~/$1.ovpn
-	cat /etc/openvpn/easy-rsa/pki/issued/$1.crt >> ~/$1.ovpn
-	echo "</cert>" >> ~/$1.ovpn
-	echo "<key>" >> ~/$1.ovpn
-	cat /etc/openvpn/easy-rsa/pki/private/$1.key >> ~/$1.ovpn
-	echo "</key>" >> ~/$1.ovpn
-	echo "<tls-auth>" >> ~/$1.ovpn
-	cat /etc/openvpn/ta.key >> ~/$1.ovpn
-	echo "</tls-auth>" >> ~/$1.ovpn
+cp /etc/openvpn/client-common.txt $HOME/$1.ovpn
+echo "<key>
+$(cat /etc/openvpn/client-key.pem)
+</key>
+<cert>
+$(cat /etc/openvpn/client-cert.pem)
+</cert>
+<ca>
+$(cat /etc/openvpn/ca.pem)
+</ca>" >> $HOME/$1.ovpn
 }
 
 open_1 () {
@@ -516,7 +511,7 @@ read -p " [S/N]: " -e -i S newfile
   echo -e "\033[1;31m ${txt[320]} ($HOME/$CLIENT.zip)"
   echo -e "\033[1;32m ${txt[321]} ( * menu * opcion 2 * opcion 8 )"
   }
-rm ./$CLIENT.ovpn > /dev/null 2>&1
+rm ./$CLIENT.ovpn
 cd /etc/adm-lite
 echo "senha: $senha" > $dir_user/$CLIENT
 echo "limite: $limit" >> $dir_user/$CLIENT
@@ -528,16 +523,6 @@ CLIENT="$1"
 userdel --force $CLIENT
 cd /etc/adm-lite
 [[ -e $dir_user/$CLIENT ]] && rm $dir_user/$CLIENT
-cd /etc/openvpn/easy-rsa/
-./easyrsa --batch revoke $CLIENT > /dev/null 2>&1
-EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl > /dev/null 2>&1
-rm -f pki/reqs/$CLIENT.req
-rm -f pki/private/$CLIENT.key
-rm -f pki/issued/$CLIENT.crt
-rm -f /etc/openvpn/crl.pem
-cp /etc/openvpn/easy-rsa/pki/crl.pem /etc/openvpn/crl.pem
-# CRL is read with each client connection, when OpenVPN is dropped to nobody
-chown nobody:$GROUPNAME /etc/openvpn/crl.pem
 }
 
 #SISTEMA PORTAS
