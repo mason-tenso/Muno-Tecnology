@@ -20,7 +20,6 @@ exit
 ;;
 3)
 fun_atualizar
-source menu
 exit
 ;;
 4)
