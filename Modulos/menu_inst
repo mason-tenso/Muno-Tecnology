@@ -368,8 +368,15 @@ rm /tmp/portz
 instala_ovpn () {
 parametros_iniciais () {
 #Verifica o Sistema
-[[ "$EUID" -ne 0 ]] && echo "Desculpe, você precisa rodar isso como root" && return 1
-[[ ! -e /dev/net/tun ]] && echo "TUN não está disponível" && return 1
+if [[ "$EUID" -ne 0 ]]; then
+	echo " Sorry, you need to run this as root"
+	exit 
+fi
+
+if [[ ! -e /dev/net/tun ]]; then
+	echo " The TUN device is not available"
+	exit
+fi
 if [[ -e /etc/debian_version ]]; then
 OS="debian"
 VERSION_ID=$(cat /etc/os-release | grep "VERSION_ID")
@@ -634,8 +641,8 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 #Liberando DNS
 DDNS=S
 agrega_dns () {
-echo -e "\033[1;33m$(source trans -b pt:${id} " Digite o DNS que deseja Adicionar")"
-read -p "[NewDNS]: " NEWDNS
+echo -e "\033[1;33m $(source trans -b pt:${id} "Digite o DNS que deseja Adicionar")"
+read -p " [NewDNS]: " NEWDNS
 dns_var=$(cat /etc/hosts|grep -v "$NEWDNS")
 echo "127.0.0.1 $NEWDNS" > /etc/hosts
 echo "$dns_var" >> /etc/hosts
@@ -902,12 +909,19 @@ socksinstal () {
 pconfig () {
 echo -e "${barra}\n $(source trans -b pt:${id} "Escolha a Porta em que o Socks Vai Escutar")\n${barra}"
 while true; do
-read -p " Listen Port: " porta_socket
-[[ $(mportas|grep $porta_socket) = "" ]] && break || echo -e "$(source trans -b pt:${id} "Porta Invalida")"
+unset porta_socket
+echo -ne "\033[1;37m"
+	 read -p " Local-Port: " porta_socket
+	 if [[ ! -z $porta_socket ]]; then
+		 if [[ $(echo $porta_socket|grep [0-9]) ]]; then
+			[[ $(mportas|grep $porta_socket) = "" ]] && break || echo -e "\033[1;31m $(source trans -b pt:${id} "Porta Invalida")"
+		 fi
+	 fi
 done
 echo -e "${barra}\n $(source trans -b pt:${id} "Escolha o Texto de Conexao")\n${barra}"
 read -p " Text Socket: " -e -i ADMULTIMATE texto_soket
 }
+IP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 [[ -e /etc/adm-lite/sockpub ]] && _sockpub="\033[1;32mOn" || _sockpub="\033[1;31mOff"
 [[ -e /etc/adm-lite/sockpriv ]] && _sockpriv="\033[1;32mOn" || _sockpriv="\033[1;31mOff"
 [[ -e /etc/adm-lite/sockdirect ]] && _sockdirect="\033[1;32mOn" || _sockdirect="\033[1;31mOff"
@@ -924,22 +938,22 @@ read -p " Option: " portproxy
     1)
 	pconfig
     screen -dmS screen python ./proxypub.py "$porta_socket" "$texto_soket"
-	[[ $(mportas|grep $porta_socket) != "" ]] && touch /etc/adm-lite/sockpub && socksinstal
+	[[ $(mportas|grep $porta_socket) != "" ]] || touch /etc/adm-lite/sockpub && socksinstal
     break;;
     2)
 	pconfig
     screen -dmS screen python3 ./proxypriv.py "$porta_socket" "$texto_soket" "$IP"
-	[[ $(mportas|grep $porta_socket) != "" ]] && touch /etc/adm-lite/sockpriv && socksinstal
+	[[ $(mportas|grep $porta_socket) != "" ]] || touch /etc/adm-lite/sockpriv && socksinstal
     break;;
     3)
 	pconfig
     screen -dmS screen python ./proxydirect.py "$porta_socket" "$texto_soket"
-	[[ $(mportas|grep $porta_socket) != "" ]] && touch /etc/adm-lite/sockdirect && socksinstal
+	[[ $(mportas|grep $porta_socket) != "" ]] || touch /etc/adm-lite/sockdirect && socksinstal
     break;;
 	4)
 	pconfig
     screen -dmS screen python ./openproxy.py "$porta_socket" "$texto_soket"
-	[[ $(mportas|grep $porta_socket) != "" ]] && touch /etc/adm-lite/sockopen && socksinstal
+	[[ $(mportas|grep $porta_socket) != "" ]] || touch /etc/adm-lite/sockopen && socksinstal
     break;;
 	5)
 	pstop
@@ -955,7 +969,7 @@ return 0
 
 gettunel_fun () {
 [[ -e /etc/adm-lite/gettun ]] && {
-echo -e "${barra}\n $(source trans -b pt:${id} "PARANDO GETTUNEL")\n${barra}"
+echo -e "${barra}\n DETENIENDO GETTUNEL\n${barra}"
 pid=$(ps x | grep "get.py" | grep -v grep | awk '{print $1}')
 if [ "$pid" != "" ]; then
 for pids in $(echo $pid); do
@@ -963,27 +977,33 @@ fun_bar "kill -9 $pids"
 done
 fi
 rm /etc/adm-lite/gettun
-echo -e "${barra}\n $(source trans -b pt:${id} "Gettunel Parado")\n${barra}"
+echo -e "${barra}\n Gettunel $(source trans -b es:${id} "desactivado")\n${barra}"
 return 0
 }
-echo -e "${barra}\n $(source trans -b pt:${id} "GETTUNEL PROXY")\n${barra}"
+echo -e "${barra}\n GETTUNEL PROXY\n${barra}"
 echo -e "${cor[3]} $(source trans -b pt:${id} "Escolha Uma Porta onde Gettunel vai Escutar")"
 while true; do
-read -p " Listen: " portas
-[[ $(mportas|grep $portas) = "" ]] && break || echo -e "$(source trans -b pt:${id} "Porta Invalida")"
+unset portas
+echo -ne "\033[1;37m"
+	 read -p " Local-Port: " portas
+	 if [[ ! -z $portas ]]; then
+		 if [[ $(echo $portas|grep [0-9]) ]]; then
+		[[ $(mportas|grep $portas) = "" ]] && break || echo -e " $(source trans -b pt:${id} "Porta Invalida")"
+		fi
+	fi
 done
 sed -s "s;CONFIG_LISTENING = '0.0.0.0:8799';CONFIG_LISTENING = '0.0.0.0:$portas';g" ./get > ./get.py
 screen -dmS screen python ./get.py
 sleep 1s
 rm ./get.py
  [[ "$(ps x | grep get.py | grep -v grep | awk '{print $1}')" != "" ]] && {
- echo -e "$(source trans -b pt:${id} "Gettunel Iniciado com Sucesso")"
- echo -e "$(source trans -b pt:${id} "Sua Senha Gettunel e"):"
+ echo -e "${barra}\n Gettunel $(source trans -b pt:${id} "Iniciado com Sucesso")\n${barra} "
+ echo -e " Su password es:"
  echo -e "${cor[3]} Pass:\033[1;32m ADMMANAGER"
  echo -e "$barra"
  touch /etc/adm-lite/gettun
  } || {
-echo -e "$barra\n$(source trans -b pt:${id} "Gettunel nao foi iniciado")\n$barra"
+echo -e "$barra\n Gettunel$(source trans -b pt:${id} "nao foi iniciado")\n$barra"
  }
 }
 
