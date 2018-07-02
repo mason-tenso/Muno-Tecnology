@@ -17,21 +17,46 @@ fi
 if [ "$apache" != "" ]; then
 s4="apache"
 fi
-echo -e "${cor[1]} ================================================================ ${cor[0]}"
+echo -e "${cor[1]} =================================== ${cor[0]}"
+
+#FUN_BAR
+fun_bar () {
+comando="$1"
+ _=$(
+$comando > /dev/null 2>&1
+) & > /dev/null
+pid=$!
+while [[ -d /proc/$pid ]]; do
+echo -ne " \033[1;33m["
+   for((i=0; i<10; i++)); do
+   echo -ne "\033[1;31m##"
+   sleep 0.2
+   done
+echo -ne "\033[1;33m]"
+sleep 1s
+echo
+tput cuu1
+tput dl1
+done
+echo -e " \033[1;33m[\033[1;31m####################\033[1;33m] - \033[1;32m100%\033[0m"
+sleep 1s
+}
+
 fail2ban_function () {
 if [ "$failtwoban" != "" ]; then
 echo -e "${cor[4]} ${txt[143]}"
 echo -e "${cor[2]} |1| >${cor[3]} ${txt[144]}"
 echo -e "${cor[2]} |2| >${cor[3]} ${txt[145]}"
-echo -e "${cor[1]} ================================================================ ${cor[0]}"
+echo -e "${cor[1]} =================================== ${cor[0]}"
 read -p " [1|2]: " lo_og
 if [ "$lo_og" = "2" ]; then
 cat /var/log/fail2ban.log
 fi
 if [ "$lo_og" = "1" ]; then
-apt-get remove fail2ban -y
+echo -e "${cor[1]} =================================== \033[1;37m"
+fun_bar "apt-get remove fail2ban -y"
 fi
-echo -e "${cor[1]} ================================================================ ${cor[0]}"
+echo -e "${cor[1]} =================================== ${cor[0]}"
 return
 fi
 
@@ -42,15 +67,16 @@ echo -e "${cor[5]} ${txt[149]}"
 echo -e "${cor[5]} ${txt[150]}"
 echo -e "${cor[5]} ${txt[151]}"
 echo -e "${cor[5]} ${txt[152]}"
-echo -e "${cor[1]} ================================================================ \033[1;37m"
+echo -e "${cor[1]} =================================== \033[1;37m"
 read -p " [S/N]: " fail2ban
 if [[ "$fail2ban" = "s" || "$fail2ban" = "S" ]]; then
-apt-get install fail2ban -y
+echo -e "${cor[1]} =================================== \033[1;37m"
+fun_bar "apt-get install fail2ban -y"
 cd $HOME
 wget -O fail2ban https://www.dropbox.com/s/zkd5uutdk6k2185/fail2ban-0.9.4.tar.gz?dl=0 -o /dev/null
 tar -xf $HOME/fail2ban
 cd $HOME/fail2ban-0.9.4
-./setup.py install
+fun_bar "./setup.py install" 
 echo '[INCLUDES]
 before = paths-debian.conf
 [DEFAULT]
@@ -87,7 +113,7 @@ action_blocklist_de  = blocklist_de[email="%(sender)s", service=%(filter)s, apik
 action_badips = badips.py[category="%(__name__)s", banaction="%(banaction)s", agent="%(fail2ban_agent)s"]
 action_badips_report = badips[category="%(__name__)s", agent="%(fail2ban_agent)s"]
 action = %(action_)s' > /etc/fail2ban/jail.local
-echo -e "${cor[1]} ================================================================ ${cor[0]}"
+echo -e "${cor[1]} =================================== ${cor[0]}"
 echo -e "${cor[5]} ${txt[153]}"
 echo -e "${cor[5]} ${txt[154]}"
 if [ "$s1" != "" ]; then
@@ -103,7 +129,7 @@ if [ "$s4" != "" ]; then
 echo -ne " $s4"
 fi
 echo -e ""
-echo -e "${cor[1]} ================================================================ ${cor[0]}"
+echo -e "${cor[1]} =================================== ${cor[0]}"
 echo -e "${cor[5]} ${txt[155]}"
 read -p " [S/N]: " sim_nao
 if [[ "$sim_nao" = "s" || "$sim_nao" = "S" ]]; then
@@ -434,11 +460,11 @@ logpath  = /var/log/system.log
 logencoding = utf-8
 [haproxy-http-auth]
 logpath  = /var/log/haproxy.log' >> /etc/fail2ban/jail.local
-service fail2ban restart
+service fail2ban restart > /dev/null 2>&1
 echo -e "${cor[5]} ${txt[156]}"
  fi
 fi
-echo -e "${cor[1]} ================================================================ ${cor[0]}"
+echo -e "${cor[1]} =================================== ${cor[0]}"
 return
 }
 

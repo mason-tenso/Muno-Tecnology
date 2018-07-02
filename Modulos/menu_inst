@@ -91,7 +91,7 @@ fun_squid  () {
 echo -e "$barra\n\033[1;32m $(source trans -b pt:${id} "INSTALADOR SQUID ADM-ULTIMATE")\n$barra"
 fun_ip
 echo -ne " $(source trans -b pt:${id} "Confirme seu ip")"; read -p ": " -e -i $IP ip
-echo -e " $(source trans -b pt:${id} "Agora Escolha as Portas que Deseja No Squid")"
+echo -e "$barra\n $(source trans -b pt:${id} "Agora Escolha as Portas que Deseja No Squid")"
 echo -e " $(source trans -b pt:${id} "Escolha As Portas Em Ordem Sequencial Exemplo: 80 8080 8799 3128")"
 echo -ne " $(source trans -b pt:${id} "Digite as Portas:") "; read portasx
 totalporta=($portasx)
@@ -116,9 +116,9 @@ echo -e "$barra"
 echo -e " $(source trans -b pt:${id} "INICIANDO CONFIGURACAO")"
 echo -e ".bookclaro.com.br/\n.claro.com.ar/\n.claro.com.br/\n.claro.com.co/\n.claro.com.ec/\n.claro.com.gt/\n.claro.com.ni/\n.claro.com.pe/\n.claro.com.sv/\n.claro.cr/\n.clarocurtas.com.br/\n.claroideas.com/\n.claroideias.com.br/\n.claromusica.com/\n.clarosomdechamada.com.br/\n.clarovideo.com/\n.facebook.net/\n.facebook.com/\n.netclaro.com.br/\n.oi.com.br/\n.oimusica.com.br/\n.speedtest.net/\n.tim.com.br/\n.timanamaria.com.br/\n.vivo.com.br/\n.rdio.com/\n.compute-1.amazonaws.com/\n.portalrecarga.vivo.com.br/\n.vivo.ddivulga.com/" > /etc/payloads
 echo -e "$barra\n\033[1;32m $(source trans -b pt:${id} "Agora Escolha Uma Conf Para Seu Proxy")\n$barra"
-echo -e "|1| $(source trans -b pt:${id} "Comum")"
-echo -e "|2| $(source trans -b pt:${id} "Customizado") -\033[1;31m $(source trans -b pt:${id} "Usuario Deve Ajustar")\033[1;37m\n$barra"
-read -p "[1/2]: " -e -i 1 proxy_opt
+echo -e " |1| $(source trans -b pt:${id} "Comum")"
+echo -e " |2| $(source trans -b pt:${id} "Customizado") -\033[1;31m $(source trans -b pt:${id} "Usuario Deve Ajustar")\033[1;37m\n$barra"
+read -p " [1/2]: " -e -i 1 proxy_opt
 unset var_squid
 if [[ -d /etc/squid ]]; then
 var_squid="/etc/squid/squid.conf"
@@ -231,23 +231,16 @@ forwarded_for off
 pipeline_prefetch off" >> $var_squid
 fi
 fun_eth
-echo -e " \033[1;31m [ ! ] \033[1;33m$(source trans -b pt:${id} "REINICIANDO SERVICOS")"
+echo -e "$barra\n \033[1;31m [ ! ] \033[1;33m$(source trans -b pt:${id} "REINICIANDO SERVICOS")"
 squid3 -k reconfigure > /dev/null 2>&1
 service ssh restart > /dev/null 2>&1
 service squid3 restart > /dev/null 2>&1
-echo -ne " \033[1;32m[OK]"
+echo -e " \033[1;32m[OK]"
 echo -e "$barra\n ${cor[3]}$(source trans -b pt:${id} "SQUID CONFIGURADO")\n$barra"
-mportas > /tmp/portz
-while read portas; do
-[[ $portas = "" ]] && break
-echo -e " $(source trans -b pt:${id} "SERVICO"): $(echo $portas|awk '{print $1}') $(source trans -b pt:${id} "PORTA"): $(echo $portas|awk '{print $2}')"
-done < /tmp/portz
-echo -e "$barra"
 #UFW
 for ufww in $(mportas|awk '{print $2}'); do
 ufw allow $ufww > /dev/null 2>&1
 done
-rm /tmp/portz
 }
 
 fun_dropbear () {
@@ -351,17 +344,10 @@ fun_eth
 service ssh restart > /dev/null 2>&1
 service dropbear restart > /dev/null 2>&1
 echo -e "$barra\n${cor[3]} $(source trans -b pt:${id} "Seu dropbear foi configurado com sucesso")\n$barra"
-mportas > /tmp/portz
-while read portas; do
-[[ $portas = "" ]] && break
-#echo -e "\033[1;33m$(source trans -b pt:${id} "SERVICO"): \033[1;32m$(echo $portas|awk '{print $1}') \033[1;33m$(source trans -b pt:${id} "PORTA"): \033[1;32m$(echo $portas|awk '{print $2}')"
-done < /tmp/portz
-echo -e "$barra"
 #UFW
 for ufww in $(mportas|awk '{print $2}'); do
 ufw allow $ufww > /dev/null 2>&1
 done
-rm /tmp/portz
 }
 
 
@@ -369,13 +355,19 @@ instala_ovpn () {
 parametros_iniciais () {
 #Verifica o Sistema
 if [[ "$EUID" -ne 0 ]]; then
+	echo -e "$barra"
 	echo " Sorry, you need to run this as root"
-	exit 
+	echo -e "$barra"
+	read -p " Enter"
+	source menu
 fi
 
 if [[ ! -e /dev/net/tun ]]; then
+	echo -e "$barra"
 	echo " The TUN device is not available"
-	exit
+	echo -e "$barra"
+	read -p " Enter" 
+	source menu
 fi
 if [[ -e /etc/debian_version ]]; then
 OS="debian"
@@ -799,7 +791,7 @@ return 0
        echo -e "$barra"
        while true; do
        unset cript
-       echo -ne "$(source trans -b pt:${id} "Qual Criptografia? Escolha uma Opcao"): "; read cript
+       echo -ne "$(source trans -b pt:${id} "Escolha uma Opcao"): "; read cript
        [[ ${encript[$cript]} ]] && break
        echo -e "$(source trans -b pt:${id} "Opcao Invalida")"
        done
@@ -1124,7 +1116,7 @@ chmod 0755 /usr/local/ddos/ddos.sh
 cp -s /usr/local/ddos/ddos.sh /usr/local/sbin/ddos
 /usr/local/ddos/ddos.sh --cron > /dev/null 2>&1
 sleep 2s
-echo -e "\033[1;32m ANTI_DDOS INSTALADO CON ÉXITO.\033[1;37m"
+echo -e "\033[1;32m ANTI_DDOS INSTALADO CON EXITO.\033[1;37m"
 echo -e "$barra"
 }
 

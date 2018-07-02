@@ -548,11 +548,11 @@ echo -e "${cor[1]} ====================================================== ${cor[
 cat $payload | awk -F "/" '{print $1,$2,$3,$4}'
 echo -e "${cor[1]} ====================================================== ${cor[0]}"
  if [ ! -f "/etc/init.d/squid" ]; then
-service squid3 reload
-service squid3 restart
+service squid3 reload > /dev/null 2>&1
+service squid3 restart > /dev/null 2>&1
  else
 /etc/init.d/squid reload
-service squid restart
+service squid restart > /dev/null 2>&1
  fi	
 return
 fi
@@ -583,11 +583,11 @@ echo -e "${cor[1]} ====================================================== ${cor[
 cat $payload | awk -F "/" '{print $1,$2,$3,$4}'
 echo -e "${cor[1]} ====================================================== ${cor[0]}"
  if [ ! -f "/etc/init.d/squid" ]; then
-service squid3 reload
-service squid3 restart
+service squid3 reload > /dev/null 2>&1
+service squid3 restart > /dev/null 2>&1
  else
 /etc/init.d/squid reload
-service squid restart
+service squid restart > /dev/null 2>&1
  fi	
 return
 fi
@@ -948,8 +948,8 @@ fi
 
 function_17 () {
 echo -e "${cor[3]} "${txt[333]}""
-read -p " [S/N]: " -e -i n sshsn
-[[ "$sshsn" = @(s|S|y|Y) ]] && {
+read -p " [S/N]: " -e -i n rebt
+[[ "$rebt" = @(s|S|y|Y) ]] && {
 echo -e "${cor[1]} =================================== ${cor[0]}"
 echo -e "\033[1;36m ${txt[334]}"
 sleep 3s

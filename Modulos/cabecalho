@@ -622,6 +622,19 @@ return
 fi
 }
 
+open_python () {
+echo -e "${cor[2]} ${cor[5]}${txt[279]}"
+read -p " [S/N]: " -e -i n pthsn
+[[ "$pthsn" = @(s|S|y|Y) ]] && {
+echo -e "${cor[1]} =================================== ${cor[0]}"
+porta="$1"
+fuser -k $porta/tcp > /dev/null 2>&1
+sleep 2s
+echo -e "${cor[5]} ${txt[281]}"
+return
+}
+}
+
 minhas_portas () {
 echo -e "${cor[1]} =================================== ${cor[4]}"
 portas_var="/tmp/portas"
@@ -644,7 +657,7 @@ while read pts; do
  fi
 service_porta[$i]=$(echo "$pts" | awk '{print $2}')
 service_serv[$i]=$(echo "$pts" | awk '{print $1}')
-echo -e " [$i] -> ${service_serv[$i]} : ${service_porta[$i]}"
+echo -e " \033[1;37m[$i] -> \033[1;31m${service_serv[$i]} : \033[1;32m${service_porta[$i]}"
 i=$(($i+1))
 done < $porta_var
 echo -e "${cor[5]} ${txt[277]}"
@@ -662,6 +675,10 @@ elif [ "${service_serv[$nun]}" = "squid3" ]; then
 open_squid ${service_porta[$nun]}
 elif [ "${service_serv[$nun]}" = "squid" ]; then
 open_squid ${service_porta[$nun]}
+elif [ "${service_serv[$nun]}" = "python" ]; then
+open_python ${service_porta[$nun]}
+elif [ "${service_serv[$nun]}" = "python3" ]; then
+open_python ${service_porta[$nun]}
 else
 echo -e "\033[1;31m ${txt[278]}\033[0m"
 fi
